@@ -100,7 +100,6 @@ public class TrackInformationController {
         var headerValue = (inline ? "inline" : "attachment") + "; filename=\"" + filename + "\"";
         return headers -> {
             headers.set(CONTENT_DISPOSITION, headerValue);
-            headers.set("X-Suggested-Filename", filename);
             headers.setAccessControlExposeHeaders(List.of(CONTENT_DISPOSITION, "X-Suggested-Filename"));
         };
     }
