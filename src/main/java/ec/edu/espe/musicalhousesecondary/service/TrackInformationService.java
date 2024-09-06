@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,9 @@ public class TrackInformationService {
     private final GridFSFileStoreService fileStoreService;
     private final TrackMetadataRepository metadataRepository;
     private final TrackMetadataRepository trackMetadataRepository;
+
+    private final RabbitTemplate rabbitTemplate;
+    private final DirectExchange exchange;
 
     public void save(
             @NotNull @NotEmpty List<MultipartFile> tracks,
@@ -56,10 +62,10 @@ public class TrackInformationService {
 
             TrackInformation trackInfo = TrackInformation.builder()
                     .fileIdentifier(metadata.getFileId())
-                    .reproductionCount(0L)
+                    //.reproductionCount(0L)
                     .likeCount(0L)
                     .dislikeCount(0L)
-                    .downloadCount(0L)
+                    //.downloadCount(0L)
                     .metadata(metadata)
                     .build();
             
@@ -70,7 +76,8 @@ public class TrackInformationService {
     public DownloadedFile downloadTrackFile(@NotNull String id) throws IOException {
         var file = findTrackFile(id);
         TrackInformation trackInfo = findTrackById(id);
-        trackInfo.setDownloadCount(trackInfo.getDownloadCount() + 1);
+        rabbitTemplate.convertAndSend(exchange.getName(), "routing.A", trackInfo.getFileIdentifier());
+        //trackInfo.setDownloadCount(trackInfo.getDownloadCount() + 1);
         repository.save(trackInfo);
         return file;
     }
@@ -85,7 +92,8 @@ public class TrackInformationService {
 
     public void incrementReproductionCount(@NotNull String id) {
         TrackInformation trackInfo = findTrackById(id);
-        trackInfo.setReproductionCount(trackInfo.getReproductionCount() + 1);
+        rabbitTemplate.convertAndSend(exchange.getName(), "routing.B", trackInfo.getFileIdentifier());
+        //trackInfo.setReproductionCount(trackInfo.getReproductionCount() + 1);
         repository.save(trackInfo);
     }
 

@@ -20,13 +20,13 @@ public class TrackInformation {
 
     private String fileIdentifier;
 
-    private Long reproductionCount;
+    //private Long reproductionCount;
 
     private Long likeCount;
 
     private Long dislikeCount;
 
-    private Long downloadCount;
+    //private Long downloadCount;
 
     @DBRef
     private TrackMetadata metadata;
